@@ -88,6 +88,64 @@ app.post('/verify-otp', (req, res) => {
     }
 });
 
+app.post('/confirmation-mail', async (req, res) => {
+    const { name, phone, email, eventName, eventDate, eventTime, pdfLink } = req.body;
+
+    try {
+        // Send confirmation email
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Event Participation Confirmation',
+            html: `
+                <p>Dear ${name},</p>
+                <p>Congratulations! You have successfully participated in the event "${eventName}" that will be held on ${eventDate} at ${eventTime}.</p>
+                <p>Participant Details:</p>
+                <ul>
+                    <li style="color: blue;">Name: ${name}</li>
+                    <li style="color: red;">Phone Number: ${phone}</li>
+                    <li style="color: red;">Event Name: ${eventName}</li>
+                    <li style="color: red;">Event Date: ${eventDate}</li>
+                    <li style="color: red;">Event Time: ${eventTime}</li>
+                </ul>
+                <p>Best regards,<br><strong style="color: crimson;">SUCSS<strong></p>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+        res.status(200).send('Confirmation email sent successfully.');
+    } catch (error) {
+        console.error('Error sending confirmation email:', error);
+        res.status(500).send('Failed to send confirmation email.');
+    }
+});
+
+app.post('/unsuccess-mail', async (req, res) => {
+    const { name, email, reason, eventName } = req.body;
+
+    try {
+        // Send failure email
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Event Participation Unsuccessful',
+            html: `
+                <p>Dear ${name},</p>
+                <p>We regret to inform you that you were unable to participate in the event due to the following reason:</p>
+                <p style="color: black; font-weight: bold">${reason}</p>
+                <p>Best regards,<br><strong style="color: crimson;">SUCSS</strong></p>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+        res.status(200).send('Failure email sent successfully.');
+    } catch (error) {
+        console.error('Error sending failure email:', error);
+        res.status(500).send('Failed to send failure email.');
+    }
+});
+
+
 
 // Start server
 app.listen(port, () => {
